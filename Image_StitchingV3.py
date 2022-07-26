@@ -285,30 +285,29 @@ def imageStitching(img1,img2,img3):
     #img2 = cv2.imread(argv2)
     
     
-    imageStitcher = Image_Stitching()
-    imageStitcher.smoothing_window_size = 150
+    smoothing_window_size = 150
 
-    img1_rectified, img2_rectified = imageStitcher.image_rectification(img1, img2)
-    final1 = imageStitcher.blending(img1_rectified,img2_rectified)
+    img1_rectified, img2_rectified = image_rectification(img1, img2)
+    final1 = blending(img1_rectified,img2_rectified)
     final1 = cv2.convertScaleAbs(final1)
-    final1 = imageStitcher.trim(final1)
+    final1 = trim(final1)
     cv2.imwrite('panorama1.png', final1)
     #final1,_,_ = imageStitcher.projectOntoCylinder(final1)
     cv2.imwrite('panorama1Cyl.png', final1)
     
     
-    imageStitcher.smoothing_window_size = 150
-    final2 = imageStitcher.blending(img2_rectified,img3)
+    smoothing_window_size = 150
+    final2 = blending(img2_rectified,img3)
     final2 = cv2.convertScaleAbs(final2)
-    final2 = imageStitcher.trim(final2)
+    final2 = trim(final2)
     cv2.imwrite('panorama2.png', final2)
     #final2,_,_ = imageStitcher.projectOntoCylinder(final2)
     cv2.imwrite('panorama2Cyl.png', final2)
  
-    imageStitcher.smoothing_window_size = 50
-    final3 = imageStitcher.blending(final1, img3)
+    smoothing_window_size = 50
+    final3 = blending(final1, img3)
     final3 = cv2.convertScaleAbs(final3)
-    final3 = imageStitcher.trim(final3)
+    final3 = trim(final3)
     x = 0
     y = 15
     w = 2240
@@ -316,22 +315,22 @@ def imageStitching(img1,img2,img3):
 
     #final3 = final3[y:y + h, x:x + w]
     cv2.imwrite('panorama3.png', final3)
-    final3,_,_ = imageStitcher.projectOntoCylinder(final3)
+    final3,_,_ = projectOntoCylinder(final3)
     cv2.imwrite('panorama3Cyl.png', final3)
     
     
-    imageStitcher.smoothing_window_size = 50
-    final35 = imageStitcher.blending(img1_rectified, final2)
+    smoothing_window_size = 50
+    final35 = blending(img1_rectified, final2)
     final35 = cv2.convertScaleAbs(final35)
-    final35 = imageStitcher.trim(final35)
-    final35,_,_ = imageStitcher.projectOntoCylinder(final35)
+    final35 = trim(final35)
+    final35,_,_ = projectOntoCylinder(final35)
     cv2.imwrite('panorama35.png', final35)
     
     
-    imageStitcher.smoothing_window_size = 50
-    final4 = imageStitcher.blending(final1, final2)
+    smoothing_window_size = 50
+    final4 = blending(final1, final2)
     final4 = cv2.convertScaleAbs(final4)
-    final4 = imageStitcher.trim(final4)
+    final4 = trim(final4)
     cv2.imwrite('panorama4.png', final4)
     
 
