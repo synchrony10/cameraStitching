@@ -18,6 +18,8 @@ class Image_Stitching():
         index_params = dict(algorithm=0, trees=5)
         search_params = dict(checks=50)
         self.flann = cv2.FlannBasedMatcher(index_params, search_params)
+        
+        self.H = np.array([[1.348,-0.0192,228.07],[0.09127,1.103,-64.075],[0.0001666,-0.000017679,1.0]])
 
     def registration(self, img1, img2):
         
@@ -45,8 +47,6 @@ class Image_Stitching():
             image1_kp = np.float32([kp1[i].pt for (_, i) in good_points])
             image2_kp = np.float32([kp2[i].pt for (i, _) in good_points])
             H, status = cv2.findHomography(image2_kp, image1_kp, cv2.RANSAC,4.0)
-            
-            print(H)
                 
             return H
         return None
@@ -161,7 +161,6 @@ class Image_Stitching():
         flann = cv2.FlannBasedMatcher(index_params, search_params)
         matches = flann.knnMatch(des1, des2, k=2)
 
-
         # Keep good matches: calculate distinctive image features
         matchesMask = [[0, 0] for i in range(len(matches))]
         good = []
@@ -175,6 +174,18 @@ class Image_Stitching():
                 good.append(m)
                 pts2.append(kp2[m.trainIdx].pt)
                 pts1.append(kp1[m.queryIdx].pt)
+
+                
+        # Draw the keypoint matches between both pictures
+        draw_params = dict(matchColor=(0, 255, 0),
+                        singlePointColor=(255, 0, 0),
+                        matchesMask=matchesMask,
+                        flags=cv2.DrawMatchesFlags_DEFAULT)
+
+        keypoint_matches = cv2.drawMatchesKnn(
+            img1, kp1, img2, kp2, matches, None, **draw_params)
+        #cv2.imshow("Keypoint matches", keypoint_matches)
+        #cv2.waitKey(0)
 
 
         # ------------------------------------------------------------
@@ -211,6 +222,25 @@ class Image_Stitching():
             return img1color, img2color
 
 
+        # Find epilines corresponding to points in right image (second image) and
+        # drawing its lines on left image
+        lines1 = cv2.computeCorrespondEpilines(
+            pts2.reshape(-1, 1, 2), 2, fundamental_matrix)
+        lines1 = lines1.reshape(-1, 3)
+        img5, img6 = drawlines(img1, img2, lines1, pts1, pts2)
+
+        # Find epilines corresponding to points in left image (first image) and
+        # drawing its lines on right image
+        lines2 = cv2.computeCorrespondEpilines(
+            pts1.reshape(-1, 1, 2), 1, fundamental_matrix)
+        lines2 = lines2.reshape(-1, 3)
+        #img3, img4 = drawlines(img2, img1, lines2, pts2, pts1)
+
+        #plt.subplot(121), plt.imshow(cv2.cvtColor(img5, cv2.COLOR_BGR2RGB))
+        #plt.subplot(122), plt.imshow(cv2.cvtColor(img3, cv2.COLOR_BGR2RGB))
+        #plt.suptitle("Epilines in both images")
+        #plt.show()
+
 
         # Stereo rectification (uncalibrated variant)
         h1, w1, c = img1.shape
@@ -218,7 +248,6 @@ class Image_Stitching():
         _, H1, H2 = cv2.stereoRectifyUncalibrated(
             np.float32(pts1), np.float32(pts2), fundamental_matrix, imgSize=(w1, h1))
 
-        
 
         # Undistort (rectify) the images and save them
         img1_rectified = cv2.warpPerspective(img1, H1, (w1, h1))
@@ -230,7 +259,9 @@ class Image_Stitching():
 
         
 
-    def blending(self, img1, img2, H):
+    def blending(self, img1, img2):
+        
+        #H = self.registration(img1,img2)
             
         height_img1 = img1.shape[0]
         width_img1 = img1.shape[1]
@@ -249,7 +280,7 @@ class Image_Stitching():
         #cv2.imshow("mask2", mask2)
         #cv2.waitKey(0)
         
-        panorama2 = cv2.warpPerspective(img2, H, (width_panorama, height_panorama))*mask2
+        panorama2 = cv2.warpPerspective(img2, self.H, (width_panorama, height_panorama))*mask2
         
         result = panorama1 + panorama2
 
@@ -285,16 +316,12 @@ def imageStitching(img1,img2):
     imageStitcher = Image_Stitching()
     imageStitcher.smoothing_window_size = 50
 
-    #img1_rectified, img2_rectified, pts1, pts2, good_matches = imageStitcher.image_rectification(img1, img2)
-    H = imageStitcher.registration(img1, img2)
-    final1 = imageStitcher.blending(img1, img2, H)
+    final1 = imageStitcher.blending(img1, img2)
     final1 = cv2.convertScaleAbs(final1)
     #final1 = imageStitcher.trim(final1)
     cv2.imwrite('panorama1.png', final1)
     #final1,_,_ = imageStitcher.projectOntoCylinder(final1)
     cv2.imwrite('panorama1Cyl.png', final1)
-    cv2.imshow("Panorama", final1)
-    cv2.waitKey(0)
     
 
     
@@ -303,33 +330,19 @@ def imageStitching(img1,img2):
 
     
     
-image_paths = sorted(glob.glob('C:/Users/nhoei/knightec/newImages/first/*.png'))
-first_images = []
+#image_paths = sorted(glob.glob('ImagesStitching/*.png'))
+#images = []
 
-for image in image_paths:
-    img = cv2.imread(image)
-    first_images.append(img)
-    
-image_paths = sorted(glob.glob('C:/Users/nhoei/knightec/newImages/second/*.png'))
-second_images = []
-
-for image in image_paths:
-    img = cv2.imread(image)
-    second_images.append(img)
-    
-image_paths = sorted(glob.glob('C:/Users/nhoei/knightec/newImages/third/*.png'))
-first_images = []
-
-for image in image_paths:
-    img = cv2.imread(image)
-    first_images.append(img)
+#for image in image_paths:
+   # img = cv2.imread(image)
+   # images.append(img)
 
 #img1 = images[0]
 #img2 = images[1]
 #img3 = images[2]
 
-#img1 = cv2.imread("C:/Users/nhoei/knightec/sceneImages/first/imageFirst3.png")
-#img2 = cv2.imread("C:/Users/nhoei/knightec/sceneImages/second/imageSecond3.png")
+#img1 = cv2.imread("C:/Users/nhoei/knightec/sceneImages/first/imageFirst5.png")
+#img2 = cv2.imread("C:/Users/nhoei/knightec/sceneImages/second/imageSecond5.png")
 #img3 = cv2.imread("C:/Users/nhoei/knightec/sceneImages/third/imageThird5.png")
 
 #img1 = cv2.imread("C:/Users/nhoei/knightec/camerasCloser/first/imageFirst0.png")
@@ -337,8 +350,8 @@ for image in image_paths:
 #img3 = cv2.imread("C:/Users/nhoei/knightec/camerasCloser/third/imageThird0.png")
 
 #img1 = cv2.imread("C:/Users/nhoei/knightec/newImages/first/imageFirst1.png")
-img1 = cv2.imread("C:/Users/nhoei/knightec/newImages/second/imageSecond23.png")
-img2 = cv2.imread("C:/Users/nhoei/knightec/newImages/third/imageThird23.png")
+img1 = cv2.imread("C:/Users/nhoei/knightec/newImages/second/imageSecond21.png")
+img2 = cv2.imread("C:/Users/nhoei/knightec/newImages/third/imageThird21.png")
 
 #img1 = cv2.imread("C:/Users/nhoei/knightec/rectified_1.png")
 #img2 = cv2.imread("C:/Users/nhoei/knightec/rectified_2.png")

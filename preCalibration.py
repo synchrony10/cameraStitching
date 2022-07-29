@@ -24,8 +24,8 @@ class Image_Stitching():
         # Detect keypoints and compute descriptors
         #img1 = cv2.convertScaleAbs(img1)
         #img2 = cv2.convertScaleAbs(img2)
-        kp1, des1 = self.sift.detectAndCompute(cv2.cvtColor(img1,cv2.COLOR_BGR2GRAY), None)
-        kp2, des2 = self.sift.detectAndCompute(cv2.cvtColor(img2,cv2.COLOR_BGR2GRAY), None)
+        kp1, des1 = self.sift.detectAndCompute(img1, None)
+        kp2, des2 = self.sift.detectAndCompute(img2, None)
         #matcher = cv2.BFMatcher()
         #raw_matches = matcher.knnMatch(des1, des2, k=2)
         raw_matches = self.flann.knnMatch(des1, des2, k=2)
@@ -226,7 +226,7 @@ class Image_Stitching():
         #cv2.imwrite("rectified_1.png", img1_rectified)
         #cv2.imwrite("rectified_2.png", img2_rectified)
         
-        return img1_rectified, img2_rectified, pts1, pts2, good
+        return img1_rectified, img2_rectified
 
         
 
@@ -279,112 +279,86 @@ class Image_Stitching():
     
     
     
-def imageStitching(img1,img2):
+def imageStitching():
     
     
     imageStitcher = Image_Stitching()
     imageStitcher.smoothing_window_size = 50
 
     #img1_rectified, img2_rectified, pts1, pts2, good_matches = imageStitcher.image_rectification(img1, img2)
-    H = imageStitcher.registration(img1, img2)
-    final1 = imageStitcher.blending(img1, img2, H)
-    final1 = cv2.convertScaleAbs(final1)
+    #H = imageStitcher.registration(img1, img2)
+    #final1 = imageStitcher.blending(img1, img2, H)
+    #final1 = cv2.convertScaleAbs(final1)
     #final1 = imageStitcher.trim(final1)
-    cv2.imwrite('panorama1.png', final1)
+    #cv2.imwrite('panorama1.png', final1)
     #final1,_,_ = imageStitcher.projectOntoCylinder(final1)
-    cv2.imwrite('panorama1Cyl.png', final1)
-    cv2.imshow("Panorama", final1)
-    cv2.waitKey(0)
+    #cv2.imwrite('panorama1Cyl.png', final1)
+    #cv2.imshow("Panorama", final1)
+    #cv2.waitKey(0)
     
 
     
-    return final1
+    #return final1
 
 
     
+
     
-image_paths = sorted(glob.glob('C:/Users/nhoei/knightec/newImages/first/*.png'))
+image_paths = sorted(glob.glob('C:/Users/nhoei/knightec/newImages/second/*.png'))
 first_images = []
 
 for image in image_paths:
     img = cv2.imread(image)
     first_images.append(img)
     
-image_paths = sorted(glob.glob('C:/Users/nhoei/knightec/newImages/second/*.png'))
+image_paths = sorted(glob.glob('C:/Users/nhoei/knightec/newImages/third/*.png'))
 second_images = []
 
 for image in image_paths:
     img = cv2.imread(image)
     second_images.append(img)
-    
-image_paths = sorted(glob.glob('C:/Users/nhoei/knightec/newImages/third/*.png'))
-first_images = []
-
-for image in image_paths:
-    img = cv2.imread(image)
-    first_images.append(img)
-
-#img1 = images[0]
-#img2 = images[1]
-#img3 = images[2]
-
-#img1 = cv2.imread("C:/Users/nhoei/knightec/sceneImages/first/imageFirst3.png")
-#img2 = cv2.imread("C:/Users/nhoei/knightec/sceneImages/second/imageSecond3.png")
-#img3 = cv2.imread("C:/Users/nhoei/knightec/sceneImages/third/imageThird5.png")
-
-#img1 = cv2.imread("C:/Users/nhoei/knightec/camerasCloser/first/imageFirst0.png")
-#img2 = cv2.imread("C:/Users/nhoei/knightec/camerasCloser/second/imageSecond0.png")
-#img3 = cv2.imread("C:/Users/nhoei/knightec/camerasCloser/third/imageThird0.png")
-
-#img1 = cv2.imread("C:/Users/nhoei/knightec/newImages/first/imageFirst1.png")
-img1 = cv2.imread("C:/Users/nhoei/knightec/newImages/second/imageSecond23.png")
-img2 = cv2.imread("C:/Users/nhoei/knightec/newImages/third/imageThird23.png")
-
-#img1 = cv2.imread("C:/Users/nhoei/knightec/rectified_1.png")
-#img2 = cv2.imread("C:/Users/nhoei/knightec/rectified_2.png")
-
-#img1 = cv2.imread("panorama1.jpg")
-#img2 = cv2.imread("panorama2.jpg")
 
 
-stitched_image = imageStitching(img1,img2)
-   
 
-"""cap1 = cv2.VideoCapture(1)
-cap2 = cv2.VideoCapture(3)
-cap3 = cv2.VideoCapture(2)
 
-num = 0
+imageStitcher = Image_Stitching()
+imageStitcher.smoothing_window_size = 50
 
-while cap1.isOpened():
+f1,f2,f3 = [],[],[]
+s1,s2,s3 = [],[],[]
+t1,t2,t3 = [],[],[]
 
-    succes1, img1 = cap1.read()
-    succes2, img2 = cap2.read()
-    succes3, img3 = cap3.read()
-    
-    start = time.perf_counter()
-    
-    stitched_image = imageStitching(img1,img2,img3)
-    
-    end = time.perf_counter()
-    totalTime = end - start
+for i in range(len(first_images)):
+    H = imageStitcher.registration(first_images[i], second_images[i])
+    if H is not None:
+        print(H)
+        f1.append(H[0][0])
+        f2.append(H[0][1])
+        f3.append(H[0][2])
+        s1.append(H[1][0])
+        s2.append(H[1][1])
+        s3.append(H[1][2])
+        t1.append(H[2][0])
+        t2.append(H[2][1])
+        t3.append(H[2][2])
 
-    fps = 1 / totalTime
-    print("FPS: ", fps)
 
-    cv2.putText(stitched_image, f'FPS: {int(fps)}', (20,70), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
+f1 = np.mean(np.array(f1))
+f2 = np.mean(np.array(f2))
+f3 = np.mean(np.array(f3))
+s1 = np.mean(np.array(s1))
+s2 = np.mean(np.array(s2))
+s3 = np.mean(np.array(s3))
+t1 = np.mean(np.array(t1))
+t2 = np.mean(np.array(t2))
+t3 = np.mean(np.array(t3))
 
-    cv2.imshow('Stitched Image', stitched_image)
 
-    if cv2.waitKey(5) & 0xFF == 27:
-        break
-    
+Homography = np.array([[f1,f2,f3],[s1,s2,s3],[t1,t2,t3]])
 
-# Release and destroy all windows before termination
-cap1.release()
-cap2.release()
-cap3.release()
+print("H: ", Homography)
 
-cv2.destroyAllWindows()"""
-  
-        
+with open('homographyCalibrated.npy', 'wb') as f:
+            np.save(f, np.array(H))
+            
+

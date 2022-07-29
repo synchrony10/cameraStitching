@@ -16,6 +16,8 @@ index_params = dict(algorithm=0, trees=5)
 search_params = dict(checks=50)
 flann = cv2.FlannBasedMatcher(index_params, search_params)
 
+
+
 def registration(img1,img2):
     
     # Detect keypoints and compute descriptors
@@ -142,7 +144,7 @@ def projectOntoCylinder(InitialImage):
 
     
     
-def image_rectification(img1, img2, matches, kp1, kp2):
+def image_rectification(img1, img2):
   
     # Keep good matches: calculate distinctive image features
     #matchesMask = [[0, 0] for i in range(len(matches))]
@@ -229,9 +231,6 @@ def image_rectification(img1, img2, matches, kp1, kp2):
 def blending(img1,img2):
     
     H = registration(img1,img2)
-    
-    with open('homography.npy', 'rb') as f:
-        H = np.load(f)
         
     height_img1 = img1.shape[0]
     width_img1 = img1.shape[1]
@@ -364,9 +363,8 @@ def imageStitching(img1,img2,img3):
 #img2 = cv2.imread("C:/Users/nhoei/knightec/camerasCloser/second/imageSecond0.png")
 #img3 = cv2.imread("C:/Users/nhoei/knightec/camerasCloser/third/imageThird0.png")
 
-img1 = cv2.imread("C:/Users/nhoei/knightec/newImages/first/imageFirst1.png")
-img2 = cv2.imread("C:/Users/nhoei/knightec/newImages/second/imageSecond1.png")
-img3 = cv2.imread("C:/Users/nhoei/knightec/newImages/third/imageThird1.png")
+img1 = cv2.imread("C:/Users/nhoei/knightec/newImages/second/imageSecond1.png")
+img2 = cv2.imread("C:/Users/nhoei/knightec/newImages/third/imageThird1.png")
 
 #img1 = cv2.imread("C:/Users/nhoei/knightec/rectified_1.png")
 #img2 = cv2.imread("C:/Users/nhoei/knightec/rectified_2.png")
@@ -375,7 +373,7 @@ img3 = cv2.imread("C:/Users/nhoei/knightec/newImages/third/imageThird1.png")
 #img2 = cv2.imread("panorama2.jpg")
 
 
-stitched_image = imageStitching(img1,img2,img3)
+stitched_image = imageStitching(img1,img2)
    
 
 """cap1 = cv2.VideoCapture(1)
